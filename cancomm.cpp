@@ -23,8 +23,6 @@ Motor::PutData decodeTx(const unsigned char (*const data_into_motor)[8])
 
 UCh8 encodeTx(const Motor::PutData &data_into_motor)
 {
-    UCh8 msg = { .data = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, } };
-
     const float p  = middle(P_MIN, data_into_motor.p, P_MAX);
     const float v  = middle(V_MIN, data_into_motor.v, V_MAX);
     const float kp = middle(KP_MIN, data_into_motor.kp, KP_MAX);
@@ -36,6 +34,8 @@ UCh8 encodeTx(const Motor::PutData &data_into_motor)
     const int kp_int = float2int(kp, KP_MIN, KP_MAX, 12);
     const int kd_int = float2int(kd, KD_MIN, KD_MAX, 12);
     const int t_int  = float2int(t, T_MIN, T_MAX, 12);
+
+    UCh8 msg = { .data = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, } };
 
     msg.data[0] = p_int >> 8;
     msg.data[1] = p_int & 0xFF;
@@ -70,18 +70,18 @@ void Motor::setInputWithHexademical(const UCh8 &encoded_input)
     this->data_into_motor = decodeTx(&encoded_input.data);
 }
 
-void Motor::pack(CANMessage &can_msg) const
+void Motor::pack(CANMessage &tx_msg) const
 {
     const UCh8 msg = encodeTx(data_into_motor);
 
-    for (int i = 0; i < len(can_msg.data); i++) {
-        can_msg.data[i] = msg.data[i];
+    for (std::size_t i = 0; i < len(tx_msg.data); i++) {
+        tx_msg.data[i] = msg.data[i];
     }
 }
 
-void Motor::unpack(const CANMessage &can_msg)
+void Motor::unpack(const CANMessage &rx_msg)
 {
-    const GetDataWithId data_from_motor = decodeRx(can_msg.data);
+    const GetDataWithId data_from_motor = decodeRx(rx_msg.data);
 
     if (this->motor_id == data_from_motor.motor_id) {
         this->data_from_motor.p = data_from_motor.p;

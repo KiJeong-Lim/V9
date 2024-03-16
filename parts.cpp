@@ -22,16 +22,16 @@ bool MotorHandler::isWellFormed() const
     return tx_msg.len == 8 && tx_msg.id == motor_id;
 }
 
-void MotorHandler::putTxMsg(const UCh8 &rhs)
-{
-    for (int i = 0; i < len(tx_msg.data); i++) {
-        tx_msg.data[i] = rhs.data[i];
-    }
-}
-
 void MotorHandler::sendMsg()
 {
-    this->pack(tx_msg);
+    this->pack(this->tx_msg);
+}
+
+void MotorHandler::sendBin(const UCh8 &msg)
+{
+    for (std::size_t i = 0; i < len(tx_msg.data); i++) {
+        tx_msg.data[i] = msg.data[i];
+    }
 }
 
 int MotorHandler::id() const
@@ -81,16 +81,6 @@ void CANHandler::init(const unsigned int id, const unsigned int mask, void (*con
     can.filter(id, mask, CANStandard, 0);
 }
 
-void CANHandler::read(CANMessage &rx_msg)
-{
-    can.read(rx_msg);
-}
-
-void CANHandler::write(CANMessage &tx_msg)
-{
-    can.write(tx_msg);
-}
-
 void CANHandler::onMsgReceived()
 {
     can.read(rx_msg);
@@ -102,6 +92,7 @@ void CANHandler::onMsgReceived()
 void CANHandler::sendMsg()
 {
     for (std::size_t i = 0; i < motor_handlers_vec_size; i++) {
+        motor_handlers_vec_ptr[i].pack(motor_handlers_vec_ptr[i].tx_msg);
         can.write(motor_handlers_vec_ptr[i].tx_msg);
     }
 }

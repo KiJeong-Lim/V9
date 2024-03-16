@@ -68,8 +68,8 @@ MotorHandler motor_handlers[] = {
 };
 
 #if USE_PID
-MotorHandler    transceiver1[] = { &motor_handlers[0], &motor_handlers[1], &motor_handlers[2], };
-MotorHandler    transceiver2[] = { &motor_handlers[3], &motor_handlers[4], &motor_handlers[5], };
+MotorHandler    transceiver1[] = { motor_handlers[0], motor_handlers[1], motor_handlers[2], };
+MotorHandler    transceiver2[] = { motor_handlers[3], motor_handlers[4], motor_handlers[5], };
 #else
 MotorHandler    transceiver1[] = { motor_handlers[0], motor_handlers[1], motor_handlers[2], };
 MotorHandler    transceiver2[] = { motor_handlers[3], motor_handlers[4], motor_handlers[5], };
@@ -392,7 +392,7 @@ void interact()
             printf("\n\r%% Exiting motor mode %%\n");
             for (int i = 0; i < len(motor_handlers); i++) {
                 const UCh8 msg = { .data = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFD, } };
-                motor_handlers[i].putTxMsg(msg);
+                motor_handlers[i].sendBin(msg);
             }
             turn_cnt = -2;
             return;
@@ -400,7 +400,7 @@ void interact()
             printf("\n\r%% Entering motor mode %%\n");
             for (int i = 0; i < len(motor_handlers); i++) {
                 const UCh8 msg = { .data = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC, } };
-                motor_handlers[i].putTxMsg(msg);
+                motor_handlers[i].sendBin(msg);
             }
             turn_cnt = -2;
             return;
@@ -408,7 +408,7 @@ void interact()
             printf("\n\r%% Set zero %%\n");
             for (int i = 0; i < len(motor_handlers); i++) {
                 const UCh8 msg = { .data = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, } };
-                motor_handlers[i].putTxMsg(msg);
+                motor_handlers[i].sendBin(msg);
             }
             turn_cnt = -2;
             return;
@@ -427,7 +427,7 @@ void interact()
             if (k >= 0) {
                 const UCh8 msg = { .data = { 0x7F, 0xFF, 0x7F, 0xF0, 0x00, 0x00, 0x07, 0xFF, } };
                 printf("\n\r%% Motor #%c rest position %%\n", ch);
-                motor_handlers[k].putTxMsg(msg);
+                motor_handlers[k].sendBin(msg);
             }
             k = -1;
             return;
@@ -446,7 +446,7 @@ void interact()
             if (k >= 0) {
                 const UCh8 msg = { .data = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC, } };
                 printf("\n\r%% Entering motor mode: motor #%d %%\n", k);
-                motor_handlers[k].putTxMsg(msg);
+                motor_handlers[k].sendBin(msg);
             }
             k = -1;
             return;
@@ -471,7 +471,7 @@ void interact()
             transmitMsg();
             for (int i = 0; i < len(motor_handlers); i++) {
                 const UCh8 msg = { .data = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFD, } };
-                motor_handlers[i].putTxMsg(msg);
+                motor_handlers[i].sendBin(msg);
             }
             transmitMsg();
             printf("\n\r%% Abort %%\n");

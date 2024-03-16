@@ -58,8 +58,8 @@ public:
     int motor_id;
 public:
     void setInputWithHexademical(const UCh8 &encoded_input);
-    void pack(CANMessage &can_msg) const;
-    void unpack(const CANMessage &can_msg);
+    void pack(CANMessage &tx_msg) const;
+    void unpack(const CANMessage &rx_msg);
 };
 
 class PIDController {
@@ -131,7 +131,6 @@ public:
 #if USE_PID
     MotorHandler(int id, float Kp, float Ki, float Kd);
     bool isWellFormed(void) const;
-    void putTxMsg(const UCh8 &rhs);
     void sendMsg(void);
     int id(void) const;
     bool pidInit(void);
@@ -139,12 +138,13 @@ public:
     void set_Kp(float Kp);
     void set_Ki(float Ki);
     void set_Kd(float Kd);
+    void sendBin(const UCh8 &data);
 #else
     MotorHandler(int id);
     bool isWellFormed(void) const;
-    void putTxMsg(const UCh8 &rhs);
     void sendMsg(void);
     int id(void) const;
+    void sendBin(const UCh8 &msg);
 #endif
 };
 
