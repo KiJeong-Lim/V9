@@ -1,4 +1,5 @@
 #include "capstone.hpp"
+#include <cstddef>
 
 static void             printManual(void);
 
@@ -68,11 +69,11 @@ MotorHandler motor_handlers[] = {
 };
 
 #if USE_PID
-MotorHandler    transceiver1[] = { motor_handlers[0], motor_handlers[1], motor_handlers[2], };
-MotorHandler    transceiver2[] = { motor_handlers[3], motor_handlers[4], motor_handlers[5], };
+MotorHandler    *transceiver1[] = { &motor_handlers[0], &motor_handlers[1], &motor_handlers[2], };
+MotorHandler    *transceiver2[] = { &motor_handlers[3], &motor_handlers[4], &motor_handlers[5], };
 #else
-MotorHandler    transceiver1[] = { motor_handlers[0], motor_handlers[1], motor_handlers[2], };
-MotorHandler    transceiver2[] = { motor_handlers[3], motor_handlers[4], motor_handlers[5], };
+MotorHandler    *transceiver1[] = { &motor_handlers[0], &motor_handlers[1], &motor_handlers[2], };
+MotorHandler    *transceiver2[] = { &motor_handlers[3], &motor_handlers[4], &motor_handlers[5], };
 #endif
 
 CANHandler      cans[] = { CANHandler(PB_8, PB_9, &transceiver1), CANHandler(PB_5, PB_6, &transceiver2), };
@@ -159,7 +160,7 @@ void onMsgReceived2()
 
 void transmitMsg()
 {
-    for (int i = 0; i < len(cans); i++) {
+    for (std::size_t i = 0; i < len(cans); i++) {
         cans[i].sendMsg();
     }
 }
@@ -173,7 +174,7 @@ void halt()
 {
     const Motor::PutData zero_data = { .p = 0.0, .v = 0.0, .kp = 0.0, .kd = 0.0, .t_ff = 0.0 };
 
-    for (int i = 0; i < len(motor_handlers); i++) {
+    for (std::size_t i = 0; i < len(motor_handlers); i++) {
         motor_handlers[i].data_into_motor = zero_data;
     }
     mode = SetzeroMode;
@@ -192,7 +193,7 @@ void observe()
         else {
             row = 0;
         }
-        for (int i = 0; i < len(motor_handlers); i++) {
+        for (std::size_t i = 0; i < len(motor_handlers); i++) {
             const Motor::GetData data = motor_handlers[i].data_from_motor; // SENSITIVE POINT
             const int id = motor_handlers[i].motor_id;
             printf("\rtheta%d(%ld) = %f; omega%d(%ld) = %f;\n", id, row, data.p, id, row, data.v);
@@ -210,14 +211,14 @@ void overwatch()
             printf("\t1\t2\t3\t4\t5\t6\t7\t8\n");
             for (int i = 0; i < len(motor_handlers); i++) {
                 printf("#%d\t", motor_handlers[i].id());
-                for (int j = 0; j < len(motor_handlers[i].tx_msg.data); j++) {
+                for (std::size_t j = 0; j < len(motor_handlers[i].tx_msg.data); j++) {
                     printf("%X\t", motor_handlers[i].tx_msg.data[j]);
                 }
                 printf("\n");
             }
         }
         else {
-            for (int i = 0; i < len(motor_handlers); i++) {
+            for (std::size_t i = 0; i < len(motor_handlers); i++) {
                 const Motor::PutData data = decodeTx(&motor_handlers[i].tx_msg.data);
                 printf("\n\r%%motor#%d = { .p=%.2lf, .v=%.2lf, .kp=%.2lf, .kd=%.2lf, .t_ff=%.2lf }\n", motor_handlers[i].motor_id, data.p, data.v, data.kp, data.kd, data.t_ff);
             }
