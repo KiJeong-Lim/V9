@@ -117,7 +117,7 @@ void printManual()
         "\r  TERMINAL.NEWLINE.M = LF\n"
         "\r[#2 Key and action]\n"
         "\r  r                  = Start operation\n"
-        "\r  b                  = Let p=0,v=0,kp=0,kd=0,t_ff=0\n"
+        "\r  b                  = Put p=0,v=0,kp=0,kd=0,t_ff=0\n"
         "\r  o                  = Print angles and angular velocities\n"
         "\r  (Esc)              = Let all motors exit motor mode\n"
         "\r  m                  = Let all motors enter motor mode\n"
@@ -137,13 +137,13 @@ void printManual()
         "\r  (Esc)              = Quit listening\n"
         "\r  debug              = Turn debugger on\n"
 #if USE_PID
-        "\r  pid start = $int   = Let pid start at $int-th tick\n"
+        "\r  pid start = $int   = Start pid at $int-th tick\n"
         "\r  Kp $int = $float   = Set Kp of $int-th motor to $float\n"
         "\r  Ki $int = $float   = Set Ki of $int-th motor to $float\n"
         "\r  Kd $int = $float   = Set Kd of $int-th motor to $float\n"
 #endif
-        "\r  $string            = Let operation be $string\n"
         "\r  help               = Print manual\n"
+        "\r  $string            = Let operation be $string\n"
     );
     printf("\n");
 }
