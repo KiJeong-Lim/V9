@@ -147,7 +147,7 @@ void printManual()
         "\r  help               = Print manual\n"
         "\r  $string            = Let operation be $string\n"
     );
-    printf("\n");
+    printf("\r\n");
 }
 
 void onMsgReceived1()
