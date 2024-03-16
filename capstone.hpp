@@ -64,7 +64,7 @@ public:
 
 class PIDController {
 public:
-    typedef float volatile Real_t;
+    typedef volatile float Real_t;
 private:
     Real_t last_time;
     Real_t last_error;
