@@ -1,7 +1,8 @@
 #include "capstone.hpp"
 
 /// converts float to int, given range and number of bits
-int float2int(const float x, const float x_min, const float x_max, const int bits) // don't touch me
+int float2int(const float x, const float x_min, const float x_max, const int bits)
+    // don't touch me
 {
     const float span = x_max - x_min;
     const float offset = x_min;
@@ -9,7 +10,8 @@ int float2int(const float x, const float x_min, const float x_max, const int bit
 }
 
 /// converts unsigned int to float, given range and number of bits
-float int2float(const int x_int, const float x_min, const float x_max, const int bits) // don't touch me
+float int2float(const int x_int, const float x_min, const float x_max, const int bits)
+    // don't touch me
 {
     const float span = x_max - x_min;
     const float offset = x_min;

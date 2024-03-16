@@ -1,5 +1,5 @@
 #ifndef VERSION
-#define VERSION "v9.0.3"
+#define VERSION "v9.0.4"
 
 /* VERSION=v9.0.1
 Fix: compile error
@@ -45,6 +45,25 @@ Change: CANHandler
             void onMsgReceived(void);
             void sendMsg(void);
         };
+*/
+
+/* VERSION=v9.0.4
+Change: CANHandler::sendMsg
+    - Before:
+        void CANHandler::sendMsg()
+        {
+            for (std::size_t i = 0; i < motor_handlers_vec_size; i++) {
+                motor_handlers_vec_arr[i]->pack(motor_handlers_vec_arr[i]->tx_msg);
+                can.write(motor_handlers_vec_arr[i]->tx_msg);
+            }
+        }
+    - After:
+        void CANHandler::sendMsg()
+        {
+            for (std::size_t i = 0; i < motor_handlers_vec_size; i++) {
+                can.write(motor_handlers_vec_arr[i]->tx_msg);
+            }
+        }
 */
 
 #endif

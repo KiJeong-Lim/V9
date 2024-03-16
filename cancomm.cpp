@@ -1,6 +1,7 @@
 #include "capstone.hpp"
 
 Motor::PutData decodeTx(const unsigned char (*const data_into_motor)[8])
+    // don't touch me
 {
     const unsigned char *const data = *data_into_motor;
 
@@ -22,6 +23,7 @@ Motor::PutData decodeTx(const unsigned char (*const data_into_motor)[8])
 }
 
 UCh8 encodeTx(const Motor::PutData &data_into_motor)
+    // don't touch me
 {
     const float p  = middle(P_MIN, data_into_motor.p, P_MAX);
     const float v  = middle(V_MIN, data_into_motor.v, V_MAX);
@@ -50,6 +52,7 @@ UCh8 encodeTx(const Motor::PutData &data_into_motor)
 }
 
 GetDataWithId decodeRx(const unsigned char *const data)
+    // don't touch me
 {
     const int id    = data[0];
     const int p_int = (data[1]<<8)|data[2];

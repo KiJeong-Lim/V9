@@ -92,7 +92,6 @@ void CANHandler::onMsgReceived()
 void CANHandler::sendMsg()
 {
     for (std::size_t i = 0; i < motor_handlers_vec_size; i++) {
-        motor_handlers_vec_arr[i]->pack(motor_handlers_vec_arr[i]->tx_msg);
         can.write(motor_handlers_vec_arr[i]->tx_msg);
     }
 }
