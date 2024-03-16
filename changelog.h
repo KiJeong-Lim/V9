@@ -1,5 +1,5 @@
 #ifndef VERSION
-#define VERSION "v9.1.0"
+#define VERSION "v9.2.0 (2024-03-16 21:00)"
 
 /* VERSION=v9.0.1
 Fix: compile error

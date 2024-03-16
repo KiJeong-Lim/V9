@@ -33,6 +33,8 @@ static void             pidCompute(void);
 #endif
 static Motor::PutData   sitDown_calc(int count_down, const Motor::PutData &datum);
 
+static void             printAll(void);
+
 IO                      terminal;
 Timer                   timer;
 Ticker                  send_can;
@@ -137,6 +139,7 @@ void printManual()
         "\r  debug              = Turn debugger on\n"
 #if USE_PID
         "\r  pid start = $int   = Start pid at $int-th tick\n"
+        "\r  print all          = print values of all variables\n"
         "\r  Kp $int = $float   = Set Kp of $int-th motor to $float\n"
         "\r  Ki $int = $float   = Set Ki of $int-th motor to $float\n"
         "\r  Kd $int = $float   = Set Kd of $int-th motor to $float\n"
@@ -500,13 +503,11 @@ void interact()
 
 void prompt(const char *const msg)
 {
-    char var_name[16];
-    char op_name[16];
     int sscanf_res = 0;
-    int pid_start_tick = 0;
-    int motor_id = 0;
-    float value = 0.0;
     bool res = false;
+    char str1[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+    int n1 = 0;
+    float x1 = 0.0;
 
     if (msg == NULL) {
         printf("\n\r%% Leaving listening mode %%\n");
@@ -515,11 +516,11 @@ void prompt(const char *const msg)
     }
 
 #if USE_PID
-    sscanf_res = sscanf(msg, "%s %d = %f", var_name, &motor_id, &value);
+    sscanf_res = sscanf(msg, "%s %d = %f", str1, &n1, &x1);
     if (sscanf_res == 3) {
         int idx = -1;
         for (int i = 0; i < len(motor_handlers); i++) {
-            if (motor_handlers[i].id() == motor_id) {
+            if (motor_handlers[i].id() == n1) {
                 idx = i;
                 break;
             }
@@ -528,18 +529,18 @@ void prompt(const char *const msg)
             res = false;
             goto RET;
         }
-        else if (areSameStr("Kp", var_name)) {
-            motor_handlers[idx].set_Kp(value); // SENSITIVE POINT
+        else if (areSameStr("Kp", str1)) {
+            motor_handlers[idx].set_Kp(x1); // SENSITIVE POINT
             res = true;
             goto RET;
         }
-        else if (areSameStr("Ki", var_name)) {
-            motor_handlers[idx].set_Ki(value); // SENSITIVE POINT
+        else if (areSameStr("Ki", str1)) {
+            motor_handlers[idx].set_Ki(x1); // SENSITIVE POINT
             res = true;
             goto RET;
         }
-        else if (areSameStr("Kd", var_name)) {
-            motor_handlers[idx].set_Kd(value); // SENSITIVE POINT
+        else if (areSameStr("Kd", str1)) {
+            motor_handlers[idx].set_Kd(x1); // SENSITIVE POINT
             res = true;
             goto RET;
         }
@@ -549,10 +550,10 @@ void prompt(const char *const msg)
         }
     }
 
-    sscanf_res = sscanf(msg, "pid start = %d", &pid_start_tick);
+    sscanf_res = sscanf(msg, "pid start = %d", &n1);
     if (sscanf_res == 1) {
         if (PID_START_TICK >= 0) {
-            PID_START_TICK = pid_start_tick;
+            PID_START_TICK = n1;
             res = true;
             goto RET;
         }
@@ -563,48 +564,62 @@ void prompt(const char *const msg)
     }
 #endif
 
-    sscanf_res = sscanf(msg, "%s", op_name);
+    sscanf_res = sscanf(msg, "print %s", str1);
     if (sscanf_res == 1) {
-        if (areSameStr(op_name, "help")) {
+        if (areSameStr(str1, "all")) {
+            printAll();
+            res = true;
+            goto RET;
+        }
+        else {
+            res = false;
+            goto RET;
+        }
+    }
+
+    sscanf_res = sscanf(msg, "%s", str1);
+    if (sscanf_res == 1) {
+        if (areSameStr(str1, "help")) {
             printManual();
         }
-        else if (areSameStr(op_name, "debug")) {
+        else if (areSameStr(str1, "debug")) {
             if (debug) {
                 debug = false;
             }
             else {
                 debug = true;
             }
+            res = true;
             goto RET;
         }
-        else if (areSameStr(op_name, "jump")) {
+        else if (areSameStr(str1, "jump")) {
             operation = jump;
             res = true;
             goto RET;
         }
-        else if (areSameStr(op_name, "standUp")) {
+        else if (areSameStr(str1, "standUp")) {
             operation = standUp;
             res = true;
             goto RET;
         }
 #if USE_PID
-        else if (areSameStr(op_name, "jump1")) {
+        else if (areSameStr(str1, "jump1")) {
             operation = jump1;
             res = true;
             goto RET;
         }
-        else if (areSameStr(op_name, "standUp1")) {
+        else if (areSameStr(str1, "standUp1")) {
             operation = standUp1;
             res = true;
             goto RET;
         }
 #endif
-        else if (areSameStr(op_name, "jump2")) {
+        else if (areSameStr(str1, "jump2")) {
             operation = jump2;
             res = true;
             goto RET;
         }
-        else if (areSameStr(op_name, "standUp2")) {
+        else if (areSameStr(str1, "standUp2")) {
             operation = standUp2;
             res = true;
             goto RET;
@@ -651,4 +666,32 @@ Motor::PutData sitDown_calc(const int count_down, const Motor::PutData &datum)
     };
 
     return res;
+}
+
+void printAll()
+{
+    printf("\n\rTick_dt = %lf\n", Tick_dt);
+#if USE_PID
+    printf("\n\rPID_START_TICK = %ld\n", PID_START_TICK);
+#endif
+    if (operation == standUp) {
+        printf("\n\roperation = standUp\n");
+    }
+    if (operation == jump) {
+        printf("\n\roperation = jump\n");
+    }
+#if USE_PID
+    if (operation == standUp1) {
+        printf("\n\roperation = standUp1\n");
+    }
+    if (operation == jump1) {
+        printf("\n\roperation = jump1\n");
+    }
+#endif
+    if (operation == standUp2) {
+        printf("\n\roperation = standUp2\n");
+    }
+    if (operation == jump2) {
+        printf("\n\roperation = jump2\n");
+    }
 }

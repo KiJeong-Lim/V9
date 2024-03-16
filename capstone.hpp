@@ -1,5 +1,5 @@
 #ifndef CAPSTONE
-#define CAPSTONE "V9"
+#define CAPSTONE "CAPSTONE-V9"
 
 #include <cstdio>
 #include <cstring>
