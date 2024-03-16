@@ -98,7 +98,7 @@ int main(void)
 #endif
     printf("\rRUNTIME_TICK_MAX = %d\n", RUNTIME_TICK_MAX);
     printf("\rTick_dt = %lf[s]\n", Tick_dt);
-    printf("\n");
+    printf("\r\n");
 
     printManual();
 
