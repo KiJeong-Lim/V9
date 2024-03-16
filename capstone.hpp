@@ -151,13 +151,13 @@ public:
 class CANHandler {
 private:
     CAN can;
-    MotorHandler *const *const motor_handlers_vec_ptr;
+    MotorHandler *const *const motor_handlers_vec_arr;
     const std::size_t motor_handlers_vec_size;
     CANMessage rx_msg;
 public:
     template<std::size_t LEN>
-    CANHandler(const PinName &rd, const PinName &td, MotorHandler *(*const motor_handlers_vec_ptr)[LEN])
-        : can(rd, td), motor_handlers_vec_ptr(*motor_handlers_vec_ptr), motor_handlers_vec_size(LEN), rx_msg(0)
+    CANHandler(const PinName &rd, const PinName &td, MotorHandler *(*const motor_handlers_vec_arr_ptr)[LEN])
+        : can(rd, td), motor_handlers_vec_arr(*motor_handlers_vec_arr_ptr), motor_handlers_vec_size(LEN), rx_msg(0)
     {
         rx_msg.len = 6;
     }

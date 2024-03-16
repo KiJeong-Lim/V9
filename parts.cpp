@@ -85,14 +85,14 @@ void CANHandler::onMsgReceived()
 {
     can.read(rx_msg);
     for (std::size_t i = 0; i < motor_handlers_vec_size; i++) {
-        motor_handlers_vec_ptr[i]->unpack(rx_msg);
+        motor_handlers_vec_arr[i]->unpack(rx_msg);
     }
 }
 
 void CANHandler::sendMsg()
 {
     for (std::size_t i = 0; i < motor_handlers_vec_size; i++) {
-        motor_handlers_vec_ptr[i]->pack(motor_handlers_vec_ptr[i]->tx_msg);
-        can.write(motor_handlers_vec_ptr[i]->tx_msg);
+        motor_handlers_vec_arr[i]->pack(motor_handlers_vec_arr[i]->tx_msg);
+        can.write(motor_handlers_vec_arr[i]->tx_msg);
     }
 }
