@@ -22,7 +22,7 @@ bool MotorHandler::isWellFormed() const
     return tx_msg.len == 8 && tx_msg.id == motor_id;
 }
 
-void MotorHandler::sendMsg()
+void MotorHandler::packTxMsg()
 {
     this->pack(this->tx_msg);
 }
@@ -84,12 +84,17 @@ void CANHandler::init(const unsigned int id, const unsigned int mask, void (*con
 void CANHandler::onMsgReceived()
 {
     can.read(rx_msg);
+    pullMsg();
+}
+
+void CANHandler::pullMsg()
+{
     for (std::size_t i = 0; i < motor_handlers_vec_size; i++) {
         motor_handlers_vec_arr[i]->unpack(rx_msg);
     }
 }
 
-void CANHandler::sendMsg()
+void CANHandler::pushMsg()
 {
     for (std::size_t i = 0; i < motor_handlers_vec_size; i++) {
         can.write(motor_handlers_vec_arr[i]->tx_msg);

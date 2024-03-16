@@ -1,4 +1,5 @@
 #include "capstone.hpp"
+#include <cstddef>
 
 static void             printManual(void);
 
@@ -83,7 +84,7 @@ int main(void)
     pc.baud(921600);
     pc.attach(interact);
 
-    for (int i = 0; i < len(cans); i++) {
+    for (std::size_t i = 0; i < len(cans); i++) {
         cans[i].init(0x01 << 21, 0xFFE00004, onMsgReceived[i]);
     }
 
@@ -160,7 +161,7 @@ void onMsgReceived2()
 void transmitMsg()
 {
     for (std::size_t i = 0; i < len(cans); i++) {
-        cans[i].sendMsg();
+        cans[i].pushMsg();
     }
 }
 
@@ -208,7 +209,7 @@ void overwatch()
     if (gear_dbg.go()) {
         if (turn_cnt < 0) {
             printf("\t1\t2\t3\t4\t5\t6\t7\t8\n");
-            for (int i = 0; i < len(motor_handlers); i++) {
+            for (std::size_t i = 0; i < len(motor_handlers); i++) {
                 printf("#%d\t", motor_handlers[i].id());
                 for (std::size_t j = 0; j < len(motor_handlers[i].tx_msg.data); j++) {
                     printf("%X\t", motor_handlers[i].tx_msg.data[j]);
@@ -231,14 +232,14 @@ bool loadRefTbl1(const bool until)
     static Motor::PutData last_data[len(motor_handlers)];
 
     if ((turn_cnt < len(reftbl1)) && until) {
-        for (int i = 0; i < len(motor_handlers); i++) {
+        for (std::size_t i = 0; i < len(motor_handlers); i++) {
             motor_handlers[i].data_into_motor = reftbl1[turn_cnt][(motor_handlers[i].id() - 1) % 3]; // SENSITIVE POINT
             last_data[i] = motor_handlers[i].data_into_motor;
         }
         return true;
     }
     else {
-        for (int i = 0; i < len(motor_handlers); i++) {
+        for (std::size_t i = 0; i < len(motor_handlers); i++) {
             motor_handlers[i].data_into_motor = last_data[i];
         }
         return false;
@@ -258,7 +259,7 @@ void standUp()
         { 0x7F, 0xBA, 0x7F, 0xF0, 0x39, 0x00, 0x07, 0x8D, },
     };
 
-    for (int i = 0; i < len(motor_handlers); i++) {
+    for (std::size_t i = 0; i < len(motor_handlers); i++) {
         motor_handlers[i].data_into_motor = decodeTx(&lines[(motor_handlers[i].id() - 1) % 3]); // SENSITIVE POINT
     }
 }
@@ -302,7 +303,7 @@ void standUp2()
 {
     standUp();
 
-    for (int i = 0; i < len(motor_handlers); i++) {
+    for (std::size_t i = 0; i < len(motor_handlers); i++) {
         motor_handlers[i].data_into_motor.p *= 0.25f;
         motor_handlers[i].data_into_motor.v *= 0.25f;
         motor_handlers[i].data_into_motor.kp *= 0.25f;
@@ -325,8 +326,8 @@ void serial_isr()
             observe();
             turn_cnt++;
         }
-        for (int i = 0; i < len(motor_handlers); i++) {
-            motor_handlers[i].sendMsg();
+        for (std::size_t i = 0; i < len(motor_handlers); i++) {
+            motor_handlers[i].packTxMsg();
         }
         break;
     case ObserveMode:
@@ -347,9 +348,9 @@ void serial_isr()
         }
         else if (turn_cnt >= count_down_MAX_CNT) {
             observe();
-            for (int i = 0; i < len(motor_handlers); i++) {
-                const Motor::PutData datum = sitDown_calc(-turn_cnt, motor_handlers[i].data_into_motor);
-                motor_handlers[i].sendMsg();
+            for (std::size_t i = 0; i < len(motor_handlers); i++) {
+                motor_handlers[i].data_into_motor = sitDown_calc(-turn_cnt, motor_handlers[i].data_into_motor);
+                motor_handlers[i].packTxMsg();
             }
             turn_cnt++;
         }
@@ -390,7 +391,7 @@ void interact()
             return;
         case ESC:
             printf("\n\r%% Exiting motor mode %%\n");
-            for (int i = 0; i < len(motor_handlers); i++) {
+            for (std::size_t i = 0; i < len(motor_handlers); i++) {
                 const UCh8 msg = { .data = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFD, } };
                 motor_handlers[i].sendBin(msg);
             }
@@ -398,7 +399,7 @@ void interact()
             return;
         case 'm':
             printf("\n\r%% Entering motor mode %%\n");
-            for (int i = 0; i < len(motor_handlers); i++) {
+            for (std::size_t i = 0; i < len(motor_handlers); i++) {
                 const UCh8 msg = { .data = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC, } };
                 motor_handlers[i].sendBin(msg);
             }
@@ -406,7 +407,7 @@ void interact()
             return;
         case 'z':
             printf("\n\r%% Set zero %%\n");
-            for (int i = 0; i < len(motor_handlers); i++) {
+            for (std::size_t i = 0; i < len(motor_handlers); i++) {
                 const UCh8 msg = { .data = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, } };
                 motor_handlers[i].sendBin(msg);
             }
@@ -469,7 +470,7 @@ void interact()
         case ' ':
             halt();
             transmitMsg();
-            for (int i = 0; i < len(motor_handlers); i++) {
+            for (std::size_t i = 0; i < len(motor_handlers); i++) {
                 const UCh8 msg = { .data = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFD, } };
                 motor_handlers[i].sendBin(msg);
             }
@@ -627,14 +628,14 @@ RET:
 #if USE_PID
 void pidInit()
 {
-    for (int i = 0; i < len(motor_handlers); i++) {
+    for (std::size_t i = 0; i < len(motor_handlers); i++) {
         motor_handlers[i].pidInit();
     }
 }
 
 void pidCompute()
 {
-    for (int i = 0; i < len(motor_handlers); i++) {
+    for (std::size_t i = 0; i < len(motor_handlers); i++) {
         motor_handlers[i].pidCompute();
     }
 }

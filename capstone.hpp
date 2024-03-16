@@ -131,7 +131,7 @@ public:
 #if USE_PID
     MotorHandler(int id, float Kp, float Ki, float Kd);
     bool isWellFormed(void) const;
-    void sendMsg(void);
+    void packTxMsg(void);
     int id(void) const;
     bool pidInit(void);
     bool pidCompute(void);
@@ -142,7 +142,7 @@ public:
 #else
     MotorHandler(int id);
     bool isWellFormed(void) const;
-    void sendMsg(void);
+    void packTxMsg(void);
     int id(void) const;
     void sendBin(const UCh8 &msg);
 #endif
@@ -165,7 +165,8 @@ public:
     void read(CANMessage &rx_msg);
     void write(CANMessage &tx_msg);
     void onMsgReceived(void);
-    void sendMsg(void);
+    void pullMsg(void);
+    void pushMsg(void);
 };
 
 extern const Motor::PutData reftbl1[1000][3];
