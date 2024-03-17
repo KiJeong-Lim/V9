@@ -42,11 +42,11 @@ UCh8 encodeTx(const Motor::PutData &data_into_motor)
     msg.data[0] = p_int >> 8;
     msg.data[1] = p_int & 0xFF;
     msg.data[2] = v_int >> 4;
-    msg.data[3] = ((v_int & 0xF) << 4) | (kp_int >> 8);
+    msg.data[3] = ((v_int & 0x0F) << 4) | (kp_int >> 8);
     msg.data[4] = kp_int & 0xFF;
     msg.data[5] = kd_int >> 4;
-    msg.data[6] = ((kd_int & 0xF) << 4) | (t_int >> 8);
-    msg.data[7] = t_int & 0xff;
+    msg.data[6] = ((kd_int & 0x0F) << 4) | (t_int >> 8);
+    msg.data[7] = t_int & 0xFF;
 
     return msg;
 }
@@ -55,13 +55,13 @@ GetDataWithId decodeRx(const unsigned char *const data)
     // don't touch me
 {
     const int id    = data[0];
-    const int p_int = (data[1]<<8)|data[2];
-    const int v_int = (data[3]<<4)|(data[4]>>4);
-    const int i_int = ((data[4]&0xF)<<8)|data[5];
+    const int p_int = (data[1] << 8) | data[2];
+    const int v_int = (data[3] << 4) | (data[4] >> 4);
+    const int i_int = ((data[4] & 0x0F) << 8) | data[5];
 
     const float p = int2float(p_int, P_MIN, P_MAX, 16);
     const float v = int2float(v_int, V_MIN, V_MAX, 12);
-    const float i = int2float(i_int, -I_MAX, I_MAX, 12);
+    const float i = int2float(i_int, I_MIN, I_MAX, 12);
 
     const GetDataWithId res = { .motor_id = id, .p = p, .v = v, .i = i, };
 
