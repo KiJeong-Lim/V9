@@ -106,6 +106,8 @@ int main(void)
     terminal.setPrompt(prompt);
     timer.start();
     send_can.attach(serial_isr, Tick_dt);
+    halt();
+    transmitMsg();
 }
 
 void printManual()
@@ -236,7 +238,7 @@ bool loadRefTbl1(const bool until)
     if ((turn_cnt < len(reftbl1)) && until) {
         for (std::size_t i = 0; i < len(motor_handlers); i++) {
             motor_handlers[i].data_into_motor = reftbl1[turn_cnt][(motor_handlers[i].id() - 1) % 3]; // SENSITIVE POINT
-            last_data[i] = motor_handlers[i].data_into_motor;
+            last_data[i] = reftbl1[turn_cnt][(motor_handlers[i].id() - 1) % 3]; // SENSITIVE POINT
         }
         return true;
     }
@@ -299,6 +301,14 @@ void standUp1()
 void jump2()
 {
     loadRefTbl1(turn_cnt < 199);
+
+    for (std::size_t i = 0; i < len(motor_handlers); i++) {
+        motor_handlers[i].data_into_motor.p *= -1.0f;
+        motor_handlers[i].data_into_motor.v *= -1.0f;
+        motor_handlers[i].data_into_motor.kp *= -1.0f;
+        motor_handlers[i].data_into_motor.kd *= -1.0f;
+        motor_handlers[i].data_into_motor.t_ff *= -1.0f;
+    }
 }
 
 void standUp2()
