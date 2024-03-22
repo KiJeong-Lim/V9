@@ -102,7 +102,6 @@ int main(void)
 
     printManual();
 
-    turn_cnt = -2;
     terminal.setPrompt(prompt);
     timer.start();
     send_can.attach(serial_isr, Tick_dt);
@@ -133,7 +132,6 @@ void printManual()
         "\r  l                  = Listen command\n"
         "\r  (Space bar)        = Turn all motors off\n"
         "\r  (Back space)       = Turn debugger off\n"
-        "\r  (Shift+)$int       = Let $int-th motor enter motor mode\n"
         "\r  z                  = Set zero\n"
         "\r  .                  = Decrease p,v,kp,kd,t_ff -> 0\n"
         "\r[#3 Command]\n"
@@ -304,10 +302,6 @@ void jump2()
 
     for (std::size_t i = 0; i < len(motor_handlers); i++) {
         motor_handlers[i].data_into_motor.p *= -1.0f;
-        motor_handlers[i].data_into_motor.v *= -1.0f;
-        motor_handlers[i].data_into_motor.kp *= -1.0f;
-        motor_handlers[i].data_into_motor.kd *= -1.0f;
-        motor_handlers[i].data_into_motor.t_ff *= -1.0f;
     }
 }
 
@@ -407,6 +401,8 @@ void interact()
                 const UCh8 msg = { .data = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFD, } };
                 motor_handlers[i].sendBin(msg);
             }
+            halt();
+            transmitMsg();
             turn_cnt = -2;
             return;
         case 'm':
@@ -440,25 +436,6 @@ void interact()
             if (k >= 0) {
                 const UCh8 msg = { .data = { 0x7F, 0xFF, 0x7F, 0xF0, 0x00, 0x00, 0x07, 0xFF, } };
                 printf("\n\r%% Motor #%c rest position %%\n", ch);
-                motor_handlers[k].sendBin(msg);
-            }
-            k = -1;
-            return;
-        case '!':
-        case '@':
-        case '#':
-        case '$':
-        case '%':
-        case '^':
-            for (int i = 0; i < len(motor_handlers); i++) {
-                if ("!@#$%^"[i] == ch) {
-                    k = i;
-                    break;
-                }
-            }
-            if (k >= 0) {
-                const UCh8 msg = { .data = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC, } };
-                printf("\n\r%% Entering motor mode: motor #%d %%\n", k);
                 motor_handlers[k].sendBin(msg);
             }
             k = -1;
