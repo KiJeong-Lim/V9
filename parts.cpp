@@ -29,7 +29,7 @@ void MotorHandler::packTxMsg()
 
 void MotorHandler::sendBin(const UCh8 &msg)
 {
-    for (std::size_t i = 0; i < len(tx_msg.data); i++) {
+    for (std::size_t i = 0; i < tx_msg.len; i++) {
         tx_msg.data[i] = msg.data[i];
     }
 }
@@ -42,7 +42,7 @@ int MotorHandler::id() const
 #if USE_PID
 bool MotorHandler::pidInit()
 {
-    bool okay = pid_for_p.init();
+    const bool okay = pid_for_p.init();
     if (!okay) {
         printf("\rFailed to initialize the PID controller of the motor #%d...\n", motor_id);
     }
@@ -51,7 +51,7 @@ bool MotorHandler::pidInit()
 
 bool MotorHandler::pidCompute()
 {
-    bool okay = pid_for_p.compute();
+    const bool okay = pid_for_p.compute();
     if (okay) {
         data_into_motor.p = p_ctrl;
     }

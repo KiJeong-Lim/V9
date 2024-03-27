@@ -10,6 +10,7 @@ static void             start(void);
 static void             halt(void);
 static void             observe(void);
 static void             overwatch(void);
+static void             guard(void);
 
 static bool             loadRefTbl1(bool until);
 
@@ -204,6 +205,22 @@ void observe()
     }
 }
 
+void guard()
+{
+    for (std::size_t i = 0; i < len(motor_handlers); i++) {
+        const Motor::GetData data = motor_handlers[i].data_from_motor; // SENSITIVE POINT
+        const int id = motor_handlers[i].motor_id;
+        motor_handlers[i].data_into_motor.p = middle(-0.2 , motor_handlers[i].data_into_motor.p, 0.1);
+        motor_handlers[i].data_into_motor.v = middle(-0.01, motor_handlers[i].data_into_motor.v, 0.01);
+        motor_handlers[i].data_into_motor.kp = middle(-0.1, motor_handlers[i].data_into_motor.kp, 20.0);
+        motor_handlers[i].data_into_motor.kd = middle(-0.01 , motor_handlers[i].data_into_motor.kd, 3.6);
+        motor_handlers[i].data_into_motor.t_ff = middle(-0.01, motor_handlers[i].data_into_motor.t_ff, 0.01);
+    }
+    for (std::size_t i = 0; i < len(motor_handlers); i++) {
+        motor_handlers[i].packTxMsg();
+    }
+}
+
 void overwatch()
 {
     static Gear gear_dbg = Gear(20);
@@ -372,6 +389,7 @@ void serial_isr()
     if (debug) {
         overwatch();
     }
+    guard();
     transmitMsg();
 }
 
@@ -411,6 +429,11 @@ void interact()
                 const UCh8 msg = { .data = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC, } };
                 motor_handlers[i].sendBin(msg);
             }
+            /*for (std::size_t i = 0; i < len(motor_handlers); i++) {
+                const UCh8 msg = { .data = { 0x7F, 0xFF, 0x7F, 0xF0, 0x00, 0x00, 0x07, 0xFF, } };
+                printf("\n\r%% Motor #%d rest position %%\n", i+1);
+                motor_handlers[i].sendBin(msg);
+            }*/
             turn_cnt = -2;
             return;
         case 'z':
