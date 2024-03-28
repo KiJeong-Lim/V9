@@ -61,6 +61,14 @@ bool inRange(const float left, const float x, const float right)
     return (left <= x) && (x <= right);
 }
 
+/// returns whether |x - y| < epsilon where epsilone > 0
+bool betweenEps(const float x, const float y, const float epsilon)
+{
+    if (epsilon <= 0)
+        return false;
+    return (y - x) < epsilon || (x - y) <= epsilon;
+}
+
 Gear::Gear(const int gear)
     : gear(gear), gear_cnt(0)
 {

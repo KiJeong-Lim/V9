@@ -186,5 +186,6 @@ float                       middle(float x, float y, float z);
 double                      getTime(void);
 bool                        areSameStr(const char *lhs, const char *rhs);
 bool                        inRange(float left, float x, float right);
+bool                        betweenEps(float x, float y, float epsilon);
 
 #endif

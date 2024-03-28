@@ -131,7 +131,7 @@ void printManual()
         "\r  5                  = Let 5th motor rest\n"
         "\r  6                  = Let 6th motor rest\n"
         "\r  l                  = Listen command\n"
-        "\r  (Space bar)        = Turn all motors off\n"
+        "\r  (Space bar)        = Emergency Stop\n"
         "\r  (Back space)       = Turn debugger off\n"
         "\r  z                  = Set zero\n"
         "\r  .                  = Decrease p,v,kp,kd,t_ff -> 0\n"
@@ -210,11 +210,33 @@ void guard()
     for (std::size_t i = 0; i < len(motor_handlers); i++) {
         const Motor::GetData data = motor_handlers[i].data_from_motor; // SENSITIVE POINT
         const int id = motor_handlers[i].motor_id;
-        motor_handlers[i].data_into_motor.p = middle(-0.2 , motor_handlers[i].data_into_motor.p, 0.1);
-        motor_handlers[i].data_into_motor.v = middle(-0.01, motor_handlers[i].data_into_motor.v, 0.01);
-        motor_handlers[i].data_into_motor.kp = middle(-0.1, motor_handlers[i].data_into_motor.kp, 20.0);
-        motor_handlers[i].data_into_motor.kd = middle(-0.01 , motor_handlers[i].data_into_motor.kd, 3.6);
-        motor_handlers[i].data_into_motor.t_ff = middle(-0.01, motor_handlers[i].data_into_motor.t_ff, 0.01);
+
+        const float p = middle(-0.2, motor_handlers[i].data_into_motor.p, 0.2);
+        const float v = middle(-0.05, motor_handlers[i].data_into_motor.v, 0.05);
+        const float kp = middle(-0.5, motor_handlers[i].data_into_motor.kp, 20.0);
+        const float kd = middle(-0.05, motor_handlers[i].data_into_motor.kd, 4.0);
+        const float t_ff = middle(-0.05, motor_handlers[i].data_into_motor.t_ff, 0.05);
+
+        if (!betweenEps(motor_handlers[i].data_into_motor.p, p, 0.001)) {
+            motor_handlers[i].data_into_motor.p = p;
+            printf("\r%%guard:p[%d]=%lf\n", id, p);
+        }
+        if (!betweenEps(motor_handlers[i].data_into_motor.v, v, 0.001)) {
+            motor_handlers[i].data_into_motor.v = v;
+            printf("\r%%guard:v[%d]=%lf\n", id, v);
+        }
+        if (!betweenEps(motor_handlers[i].data_into_motor.kp, kp, 0.001)) {
+            motor_handlers[i].data_into_motor.kp = kp;
+            printf("\r%%guard:kp[%d]=%lf\n", id, kp);
+        }
+        if (!betweenEps(motor_handlers[i].data_into_motor.kd, kd, 0.001)) {
+            motor_handlers[i].data_into_motor.kd = kd;
+            printf("\r%%guard:kd[%d]=%lf\n", id, kd);
+        }
+        if (!betweenEps(motor_handlers[i].data_into_motor.t_ff, t_ff, 0.001)) {
+            motor_handlers[i].data_into_motor.t_ff = t_ff;
+            printf("\r%%guard:t_ff[%d]=%lf\n", id, t_ff);
+        }
     }
     for (std::size_t i = 0; i < len(motor_handlers); i++) {
         motor_handlers[i].packTxMsg();
