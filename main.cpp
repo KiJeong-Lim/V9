@@ -429,11 +429,13 @@ void interact()
                 const UCh8 msg = { .data = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC, } };
                 motor_handlers[i].sendBin(msg);
             }
-            /*for (std::size_t i = 0; i < len(motor_handlers); i++) {
+#if 0
+            for (std::size_t i = 0; i < len(motor_handlers); i++) {
                 const UCh8 msg = { .data = { 0x7F, 0xFF, 0x7F, 0xF0, 0x00, 0x00, 0x07, 0xFF, } };
-                printf("\n\r%% Motor #%d rest position %%\n", i+1);
+                printf("\n\r%% Motor #%d rest position %%\n", motor_handlers[i].id());
                 motor_handlers[i].sendBin(msg);
-            }*/
+            }
+#endif
             turn_cnt = -2;
             return;
         case 'z':
