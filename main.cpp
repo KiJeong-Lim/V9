@@ -219,23 +219,23 @@ void guard()
 
         if (!betweenEps(motor_handlers[i].data_into_motor.p, p, 0.001)) {
             motor_handlers[i].data_into_motor.p = p;
-            printf("\r%%guard:p[%d]=%lf\n", id, p);
+            printf("\r%%guard:p(%d)=%lf\n", id, p);
         }
         if (!betweenEps(motor_handlers[i].data_into_motor.v, v, 0.001)) {
             motor_handlers[i].data_into_motor.v = v;
-            printf("\r%%guard:v[%d]=%lf\n", id, v);
+            printf("\r%%guard:v(%d)=%lf\n", id, v);
         }
         if (!betweenEps(motor_handlers[i].data_into_motor.kp, kp, 0.001)) {
             motor_handlers[i].data_into_motor.kp = kp;
-            printf("\r%%guard:kp[%d]=%lf\n", id, kp);
+            printf("\r%%guard:kp(%d)=%lf\n", id, kp);
         }
         if (!betweenEps(motor_handlers[i].data_into_motor.kd, kd, 0.001)) {
             motor_handlers[i].data_into_motor.kd = kd;
-            printf("\r%%guard:kd[%d]=%lf\n", id, kd);
+            printf("\r%%guard:kd(%d)=%lf\n", id, kd);
         }
         if (!betweenEps(motor_handlers[i].data_into_motor.t_ff, t_ff, 0.001)) {
             motor_handlers[i].data_into_motor.t_ff = t_ff;
-            printf("\r%%guard:t_ff[%d]=%lf\n", id, t_ff);
+            printf("\r%%guard:t_ff(%d)=%lf\n", id, t_ff);
         }
     }
     for (std::size_t i = 0; i < len(motor_handlers); i++) {
