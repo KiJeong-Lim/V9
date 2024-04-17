@@ -74,21 +74,16 @@ void MotorHandler::set_Kd(const float Kd)
 }
 #endif
 
-void CANHandler::init(const unsigned int id, const unsigned int mask, void (*const to_be_attached)(void))
+void CANHandler::init(void (*const to_be_attached)(void))
 {
     can.frequency(1000000);
     can.attach(to_be_attached);
-    can.filter(id, mask, CANStandard, 0);
-}
-
-void CANHandler::onMsgReceived()
-{
-    can.read(rx_msg);
-    pullMsg();
+    can.filter(0x01 << 21, 0xFFE00004, CANStandard, 0);
 }
 
 void CANHandler::pullMsg()
 {
+    can.read(rx_msg);
     for (std::size_t i = 0; i < motor_handlers_vec_size; i++) {
         motor_handlers_vec_arr[i]->unpack(rx_msg);
     }

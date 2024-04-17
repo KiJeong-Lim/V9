@@ -9,7 +9,7 @@
 
 #include "changelog.h"
 
-#define USE_PID             false
+#define USE_PID             true
 #define RUNTIME_TICK_MAX    1000
 #define Tick_dt             0.01
 
@@ -149,7 +149,7 @@ public:
 };
 
 class CANHandler {
-private:
+public:
     CAN can;
     MotorHandler *const *const motor_handlers_vec_arr;
     const std::size_t motor_handlers_vec_size;
@@ -157,14 +157,11 @@ private:
 public:
     template<std::size_t LEN>
     CANHandler(const PinName &rd, const PinName &td, MotorHandler *(*const motor_handlers_vec_arr_ptr)[LEN])
-        : can(rd, td), motor_handlers_vec_arr(*motor_handlers_vec_arr_ptr), motor_handlers_vec_size(LEN), rx_msg(0)
+        : can(rd, td), motor_handlers_vec_arr(*motor_handlers_vec_arr_ptr), motor_handlers_vec_size(LEN), rx_msg()
     {
         rx_msg.len = 6;
     }
-    void init(unsigned int id, unsigned int mask, void (*to_be_attached)(void));
-    void read(CANMessage &rx_msg);
-    void write(CANMessage &tx_msg);
-    void onMsgReceived(void);
+    void init(void (*to_be_attached)(void));
     void pullMsg(void);
     void pushMsg(void);
 };
@@ -175,6 +172,7 @@ extern IO                   terminal;
 extern Timer                timer;
 extern Ticker               send_can;
 extern Serial               pc;
+extern const char           *err_msg;
 
 Motor::PutData              decodeTx(const unsigned char (*input_data)[8]);
 UCh8                        encodeTx(const Motor::PutData &input_data);

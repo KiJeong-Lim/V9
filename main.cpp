@@ -41,10 +41,11 @@ Timer                   timer;
 Ticker                  send_can;
 Serial                  pc(PA_2, PA_3);
 
+const char              *err_msg            = "";
 static bool             debug               = false;
 static Mode_t           mode                = SetzeroMode;
 static long int         turn_cnt            = -2;
-void                    (*operation)(void)  = jump2;
+void                    (*operation)(void)  = jump1;
 static const int        count_down_MAX_CNT  = -100;
 #if USE_PID
 static long int         PID_START_TICK      = 390;
@@ -53,11 +54,11 @@ static long int         PID_START_TICK      = 390;
 MotorHandler motor_handlers[] = {
 #if USE_PID
     //           #  Kp    Ki    Kd
-    MotorHandler(1, 1.30, 0.10, 0.00),
-    MotorHandler(2, 1.25, 0.30, 0.00),
+    MotorHandler(1, 1.00, 0.10, 0.00),
+    MotorHandler(2, 1.00, 0.30, 0.00),
     MotorHandler(3, 2.00, 1.00, 0.00),
-    MotorHandler(4, 1.30, 0.10, 0.00),
-    MotorHandler(5, 1.25, 0.30, 0.00),
+    MotorHandler(4, 1.00, 0.10, 0.00),
+    MotorHandler(5, 1.00, 0.30, 0.00),
     MotorHandler(6, 2.00, 1.00, 0.00),
 #else
     //           #
@@ -78,7 +79,7 @@ MotorHandler    *transceiver1[] = { &motor_handlers[0], &motor_handlers[1], &mot
 MotorHandler    *transceiver2[] = { &motor_handlers[3], &motor_handlers[4], &motor_handlers[5], };
 #endif
 
-CANHandler      cans[] = { CANHandler(PB_8, PB_9, &transceiver1), CANHandler(PB_5, PB_6, &transceiver2), };
+CANHandler      cans[] = { CANHandler(PB_5, PB_6, &transceiver1), CANHandler(PB_8, PB_9, &transceiver2), };
 void            (*const onMsgReceived[])(void) = { onMsgReceived1, onMsgReceived2, };
 
 int main(void)
@@ -87,8 +88,14 @@ int main(void)
     pc.attach(interact);
 
     for (std::size_t i = 0; i < len(cans); i++) {
-        cans[i].init(0x01 << 21, 0xFFE00004, onMsgReceived[i]);
+        cans[i].init(onMsgReceived[i]);
     }
+
+    send_can.attach(serial_isr, Tick_dt);
+    terminal.setPrompt(prompt);
+    timer.start();
+    halt();
+    transmitMsg();
 
     printf("\n\r<< %s >>\n", CAPSTONE);
     printf("\rVERSION = %s\n", VERSION);
@@ -102,12 +109,6 @@ int main(void)
     printf("\r\n");
 
     printManual();
-
-    terminal.setPrompt(prompt);
-    timer.start();
-    send_can.attach(serial_isr, Tick_dt);
-    halt();
-    transmitMsg();
 }
 
 void printManual()
@@ -153,12 +154,12 @@ void printManual()
 
 void onMsgReceived1()
 {
-    cans[0].onMsgReceived();
+    cans[0].pullMsg();
 }
 
 void onMsgReceived2()
 {
-    cans[1].onMsgReceived();
+    cans[1].pullMsg();
 }
 
 void transmitMsg()
@@ -196,6 +197,8 @@ void observe()
         else {
             row = 0;
         }
+        printf("\rERR MSG = %s\n", err_msg);
+        err_msg = "";
         for (std::size_t i = 0; i < len(motor_handlers); i++) {
             const Motor::GetData data = motor_handlers[i].data_from_motor; // SENSITIVE POINT
             const int id = motor_handlers[i].motor_id;
@@ -217,23 +220,23 @@ void guard()
         const float kd = middle(-0.05, motor_handlers[i].data_into_motor.kd, 4.0);
         const float t_ff = middle(-0.05, motor_handlers[i].data_into_motor.t_ff, 0.05);
 
-        if (!betweenEps(motor_handlers[i].data_into_motor.p, p, 0.001)) {
+        if (!betweenEps(motor_handlers[i].data_into_motor.p, p, 0.01)) {
             motor_handlers[i].data_into_motor.p = p;
             printf("\r%%guard:p(%d)=%lf\n", id, p);
         }
-        if (!betweenEps(motor_handlers[i].data_into_motor.v, v, 0.001)) {
+        if (!betweenEps(motor_handlers[i].data_into_motor.v, v, 0.01)) {
             motor_handlers[i].data_into_motor.v = v;
             printf("\r%%guard:v(%d)=%lf\n", id, v);
         }
-        if (!betweenEps(motor_handlers[i].data_into_motor.kp, kp, 0.001)) {
+        if (!betweenEps(motor_handlers[i].data_into_motor.kp, kp, 0.01)) {
             motor_handlers[i].data_into_motor.kp = kp;
             printf("\r%%guard:kp(%d)=%lf\n", id, kp);
         }
-        if (!betweenEps(motor_handlers[i].data_into_motor.kd, kd, 0.001)) {
+        if (!betweenEps(motor_handlers[i].data_into_motor.kd, kd, 0.01)) {
             motor_handlers[i].data_into_motor.kd = kd;
             printf("\r%%guard:kd(%d)=%lf\n", id, kd);
         }
-        if (!betweenEps(motor_handlers[i].data_into_motor.t_ff, t_ff, 0.001)) {
+        if (!betweenEps(motor_handlers[i].data_into_motor.t_ff, t_ff, 0.01)) {
             motor_handlers[i].data_into_motor.t_ff = t_ff;
             printf("\r%%guard:t_ff(%d)=%lf\n", id, t_ff);
         }
@@ -411,7 +414,7 @@ void serial_isr()
     if (debug) {
         overwatch();
     }
-    guard();
+    // guard();
     transmitMsg();
 }
 
