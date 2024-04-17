@@ -172,7 +172,7 @@ extern IO                   terminal;
 extern Timer                timer;
 extern Ticker               send_can;
 extern Serial               pc;
-extern const char           *err_msg;
+extern const char           *log_msg;
 
 Motor::PutData              decodeTx(const unsigned char (*input_data)[8]);
 UCh8                        encodeTx(const Motor::PutData &input_data);

@@ -41,7 +41,7 @@ Timer                   timer;
 Ticker                  send_can;
 Serial                  pc(PA_2, PA_3);
 
-const char              *err_msg            = "";
+const char              *log_msg            = "initial log msg";
 static bool             debug               = false;
 static Mode_t           mode                = SetzeroMode;
 static long int         turn_cnt            = -2;
@@ -182,7 +182,8 @@ void halt()
         motor_handlers[i].data_into_motor = zero_data;
     }
     mode = SetzeroMode;
-    turn_cnt = -2;
+    turn_cnt = -2;    
+    transmitMsg();
 }
 
 void observe()
@@ -197,8 +198,8 @@ void observe()
         else {
             row = 0;
         }
-        printf("\rERR MSG = %s\n", err_msg);
-        err_msg = "";
+        printf("\rLOG MSG   = %s\n", log_msg);
+        log_msg = "no change";
         for (std::size_t i = 0; i < len(motor_handlers); i++) {
             const Motor::GetData data = motor_handlers[i].data_from_motor; // SENSITIVE POINT
             const int id = motor_handlers[i].motor_id;
@@ -461,7 +462,7 @@ void interact()
                 motor_handlers[i].sendBin(msg);
             }
 #endif
-            turn_cnt = -2;
+            halt();
             return;
         case 'z':
             printf("\n\r%% Set zero %%\n");
