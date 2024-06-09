@@ -62,7 +62,7 @@ MotorHandler motor_handlers[] = {
     MotorHandler(&tx_msg5, 5, 1.00, 0.30, 0.00),
     MotorHandler(&tx_msg6, 6, 2.00, 1.00, 0.00),
 #else
-    //           #
+    //                     #
     MotorHandler(&tx_msg1, 1),
     MotorHandler(&tx_msg2, 2),
     MotorHandler(&tx_msg3, 3),
@@ -203,7 +203,7 @@ void observe()
         printf("\rLOG MSG   = %s\n", log_msg);
         log_msg = "no change";
         for (std::size_t i = 0; i < len(motor_handlers); i++) {
-            const Motor::GetData data = motor_handlers[i].data_from_motor; // SENSITIVE POINT
+            const Motor::GetData data = motor_handlers[i].data_from_motor;
             const int id = motor_handlers[i].motor_id;
             printf("\rtheta%d(%ld) = %f; omega%d(%ld) = %f;\n", id, row, data.p, id, row, data.v);
         }
@@ -214,7 +214,7 @@ void observe()
 void guard()
 {
     for (std::size_t i = 0; i < len(motor_handlers); i++) {
-        const Motor::GetData data = motor_handlers[i].data_from_motor; // SENSITIVE POINT
+        const Motor::GetData data = motor_handlers[i].data_from_motor;
         const int id = motor_handlers[i].motor_id;
 
         const float p = middle(-0.2, motor_handlers[i].data_into_motor.p, 0.2);
@@ -280,8 +280,8 @@ bool loadRefTbl1(const bool until)
 
     if ((turn_cnt < len(reftbl1)) && until) {
         for (std::size_t i = 0; i < len(motor_handlers); i++) {
-            motor_handlers[i].data_into_motor = reftbl1[turn_cnt][(motor_handlers[i].id() - 1) % 3]; // SENSITIVE POINT
-            last_data[i] = reftbl1[turn_cnt][(motor_handlers[i].id() - 1) % 3]; // SENSITIVE POINT
+            motor_handlers[i].data_into_motor = reftbl1[turn_cnt][(motor_handlers[i].id() - 1) % 3];
+            last_data[i] = reftbl1[turn_cnt][(motor_handlers[i].id() - 1) % 3];
         }
         return true;
     }
@@ -307,7 +307,7 @@ void standUp()
     };
 
     for (std::size_t i = 0; i < len(motor_handlers); i++) {
-        motor_handlers[i].data_into_motor = decodeTx(&lines[(motor_handlers[i].id() - 1) % 3]); // SENSITIVE POINT
+        motor_handlers[i].data_into_motor = decodeTx(&lines[(motor_handlers[i].id() - 1) % 3]);
     }
 }
 
@@ -417,7 +417,7 @@ void serial_isr()
     if (debug) {
         overwatch();
     }
-    // guard();
+
     transmitMsg();
 }
 
@@ -570,17 +570,17 @@ void prompt(const char *const msg)
             goto RET;
         }
         else if (areSameStr("Kp", str1)) {
-            motor_handlers[idx].set_Kp(x1); // SENSITIVE POINT
+            motor_handlers[idx].set_Kp(x1);
             res = true;
             goto RET;
         }
         else if (areSameStr("Ki", str1)) {
-            motor_handlers[idx].set_Ki(x1); // SENSITIVE POINT
+            motor_handlers[idx].set_Ki(x1);
             res = true;
             goto RET;
         }
         else if (areSameStr("Kd", str1)) {
-            motor_handlers[idx].set_Kd(x1); // SENSITIVE POINT
+            motor_handlers[idx].set_Kd(x1);
             res = true;
             goto RET;
         }
