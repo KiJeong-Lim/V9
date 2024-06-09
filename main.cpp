@@ -50,7 +50,7 @@ static const int        count_down_MAX_CNT  = -100;
 #if USE_PID
 static long int         PID_START_TICK      = 390;
 #endif
-CANMessage              rx_msg1, rx_msg2, tx_msg1, tx_msg2, tx_msg3, tx_msg4, tx_msg5, tx_msg6;
+static CANMessage       rx_msg1, rx_msg2, tx_msg1, tx_msg2, tx_msg3, tx_msg4, tx_msg5, tx_msg6;
 
 MotorHandler motor_handlers[] = {
 #if USE_PID
