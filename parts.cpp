@@ -1,42 +1,43 @@
 #include "capstone.hpp"
 
 #if USE_PID
-MotorHandler::MotorHandler(const int id, const float Kp, const float Ki, const float Kd)
-    : p_ctrl(0.0), pid_for_p(Kp, Ki, Kd, &data_from_motor.p, &p_ctrl, &data_into_motor.p, P_MIN, P_MAX)
+MotorHandler::MotorHandler(CANMessage *const tx_msg, const int id, const float Kp, const float Ki, const float Kd)
+    : p_ctrl(0.0), pid_for_p(Kp, Ki, Kd, &data_from_motor.p, &p_ctrl, &data_into_motor.p, P_MIN, P_MAX), tx_msg(tx_msg)
 {
-    tx_msg.len = 8;
-    tx_msg.id = id;
+    tx_msg->len = 8;
+    tx_msg->id = id;
     this->motor_id = id;
 }
 #else
-MotorHandler::MotorHandler(const int id)
+MotorHandler::MotorHandler(CANMessage *const tx_msg, const int id)
+    : tx_msg(tx_msg)
 {
-    tx_msg.len = 8;
-    tx_msg.id = id;
+    tx_msg->len = 8;
+    tx_msg->id = id;
     this->motor_id = id;
 }
 #endif
 
 bool MotorHandler::isWellFormed() const
 {
-    return tx_msg.len == 8 && tx_msg.id == motor_id;
+    return tx_msg->len == 8 && tx_msg->id == motor_id;
 }
 
 void MotorHandler::packTxMsg()
 {
-    this->pack(this->tx_msg);
+    this->pack(*tx_msg);
 }
 
 void MotorHandler::sendBin(const UCh8 &msg)
 {
-    for (std::size_t i = 0; i < tx_msg.len; i++) {
-        tx_msg.data[i] = msg.data[i];
+    for (std::size_t i = 0; i < tx_msg->len; i++) {
+        tx_msg->data[i] = msg.data[i];
     }
 }
 
 int MotorHandler::id() const
 {
-    return tx_msg.id;
+    return tx_msg->id;
 }
 
 #if USE_PID
@@ -83,7 +84,7 @@ void CANHandler::init(void (*const to_be_attached)(void))
 
 void CANHandler::pullMsg()
 {
-    can->read(rx_msg);
+    can->read(*rx_msg);
     for (std::size_t i = 0; i < motor_handlers_vec_size; i++) {
         motor_handlers_vec_arr[i]->unpack(*rx_msg);
     }
@@ -92,6 +93,6 @@ void CANHandler::pullMsg()
 void CANHandler::pushMsg()
 {
     for (std::size_t i = 0; i < motor_handlers_vec_size; i++) {
-        can->write(motor_handlers_vec_arr[i]->tx_msg);
+        can->write(*motor_handlers_vec_arr[i]->tx_msg);
     }
 }

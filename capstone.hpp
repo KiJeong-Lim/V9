@@ -1,4 +1,3 @@
-#include "mbed2/299/drivers/CAN.h"
 #ifndef CAPSTONE
 #define CAPSTONE "CAPSTONE-V9"
 
@@ -124,13 +123,13 @@ public:
 #if USE_PID
     PIDController::Real_t p_ctrl;
     PIDController pid_for_p;
-    CANMessage tx_msg;
+    CANMessage *const tx_msg;
 #else
-    CANMessage tx_msg;
+    CANMessage *const tx_msg;
 #endif
 public:
 #if USE_PID
-    MotorHandler(int id, float Kp, float Ki, float Kd);
+    MotorHandler(CANMessage *const tx_msg, int id, float Kp, float Ki, float Kd);
     bool isWellFormed(void) const;
     void packTxMsg(void);
     int id(void) const;
@@ -141,7 +140,7 @@ public:
     void set_Kd(float Kd);
     void sendBin(const UCh8 &data);
 #else
-    MotorHandler(int id);
+    MotorHandler(CANMessage *const tx_msg, int id);
     bool isWellFormed(void) const;
     void packTxMsg(void);
     int id(void) const;
@@ -151,10 +150,10 @@ public:
 
 class CANHandler {
 public:
-    CAN *can;
+    CAN *const can;
     MotorHandler *const *const motor_handlers_vec_arr;
     const std::size_t motor_handlers_vec_size;
-    CANMessage *rx_msg;
+    CANMessage *const rx_msg;
 public:
     template<std::size_t LEN>
     CANHandler(CAN *const can, MotorHandler *(*const motor_handlers_vec_arr_ptr)[LEN], CANMessage *const rx_msg)

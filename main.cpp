@@ -1,5 +1,4 @@
 #include "capstone.hpp"
-#include "mbed2/299/drivers/CAN.h"
 
 static void             printManual(void);
 
@@ -42,7 +41,7 @@ Timer                   timer;
 Ticker                  send_can;
 Serial                  pc(PA_2, PA_3);
 const char              *log_msg            = "initial log msg";
-
+       
 static bool             debug               = false;
 static Mode_t           mode                = SetzeroMode;
 static long int         turn_cnt            = -2;
@@ -51,24 +50,25 @@ static const int        count_down_MAX_CNT  = -100;
 #if USE_PID
 static long int         PID_START_TICK      = 390;
 #endif
+CANMessage              rx_msg1, rx_msg2, tx_msg1, tx_msg2, tx_msg3, tx_msg4, tx_msg5, tx_msg6;
 
 MotorHandler motor_handlers[] = {
 #if USE_PID
-    //           #  Kp    Ki    Kd
-    MotorHandler(1, 1.00, 0.10, 0.00),
-    MotorHandler(2, 1.00, 0.30, 0.00),
-    MotorHandler(3, 2.00, 1.00, 0.00),
-    MotorHandler(4, 1.00, 0.10, 0.00),
-    MotorHandler(5, 1.00, 0.30, 0.00),
-    MotorHandler(6, 2.00, 1.00, 0.00),
+    //                     #  Kp    Ki    Kd
+    MotorHandler(&tx_msg1, 1, 1.00, 0.10, 0.00),
+    MotorHandler(&tx_msg2, 2, 1.00, 0.30, 0.00),
+    MotorHandler(&tx_msg3, 3, 2.00, 1.00, 0.00),
+    MotorHandler(&tx_msg4, 4, 1.00, 0.10, 0.00),
+    MotorHandler(&tx_msg5, 5, 1.00, 0.30, 0.00),
+    MotorHandler(&tx_msg6, 6, 2.00, 1.00, 0.00),
 #else
     //           #
-    MotorHandler(1),
-    MotorHandler(2),
-    MotorHandler(3),
-    MotorHandler(4),
-    MotorHandler(5),
-    MotorHandler(6),
+    MotorHandler(&tx_msg1, 1),
+    MotorHandler(&tx_msg2, 2),
+    MotorHandler(&tx_msg3, 3),
+    MotorHandler(&tx_msg4, 4),
+    MotorHandler(&tx_msg5, 5),
+    MotorHandler(&tx_msg6, 6),
 #endif
 };
 
@@ -80,7 +80,6 @@ MotorHandler    *transceiver1[] = { &motor_handlers[0], &motor_handlers[1], &mot
 MotorHandler    *transceiver2[] = { &motor_handlers[3], &motor_handlers[4], &motor_handlers[5], };
 #endif
 
-CANMessage      rx_msg1, rx_msg2;
 CAN             can1(PB_5, PB_6), can2(PB_8, PB_9);
 CANHandler      can_handlers[] = { CANHandler(&can1, &transceiver1, &rx_msg1), CANHandler(&can2, &transceiver2, &rx_msg2), };
 void            (*const onMsgReceived[])(void) = { onMsgReceived1, onMsgReceived2, };
@@ -123,7 +122,7 @@ void printManual()
         "\r  TERMINAL.NEWLINE.R = LF\n"
         "\r  TERMINAL.NEWLINE.M = LF\n"
         "\r[#2 Key and action]\n"
-        "\r  r                  = Start operation\n"
+        "\r  r                  = Start the operation\n"
         "\r  b                  = Put p=0,v=0,kp=0,kd=0,t_ff=0\n"
         "\r  o                  = Print angles and angular velocities\n"
         "\r  (Esc)              = Let all motors exit motor mode\n"
@@ -259,15 +258,15 @@ void overwatch()
             printf("\t1\t2\t3\t4\t5\t6\t7\t8\n");
             for (std::size_t i = 0; i < len(motor_handlers); i++) {
                 printf("#%d\t", motor_handlers[i].id());
-                for (std::size_t j = 0; j < len(motor_handlers[i].tx_msg.data); j++) {
-                    printf("%X\t", motor_handlers[i].tx_msg.data[j]);
+                for (std::size_t j = 0; j < len(motor_handlers[i].tx_msg->data); j++) {
+                    printf("%X\t", motor_handlers[i].tx_msg->data[j]);
                 }
                 printf("\n");
             }
         }
         else {
             for (std::size_t i = 0; i < len(motor_handlers); i++) {
-                const Motor::PutData data = decodeTx(&motor_handlers[i].tx_msg.data);
+                const Motor::PutData data = decodeTx(&motor_handlers[i].tx_msg->data);
                 printf("\n\r%%motor#%d = { .p=%.2lf, .v=%.2lf, .kp=%.2lf, .kd=%.2lf, .t_ff=%.2lf }\n", motor_handlers[i].motor_id, data.p, data.v, data.kp, data.kd, data.t_ff);
             }
         }
