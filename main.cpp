@@ -1,4 +1,5 @@
 #include "capstone.hpp"
+#include "mbed2/299/drivers/CAN.h"
 
 static void             printManual(void);
 
@@ -40,8 +41,8 @@ IO                      terminal;
 Timer                   timer;
 Ticker                  send_can;
 Serial                  pc(PA_2, PA_3);
-
 const char              *log_msg            = "initial log msg";
+
 static bool             debug               = false;
 static Mode_t           mode                = SetzeroMode;
 static long int         turn_cnt            = -2;
@@ -79,7 +80,9 @@ MotorHandler    *transceiver1[] = { &motor_handlers[0], &motor_handlers[1], &mot
 MotorHandler    *transceiver2[] = { &motor_handlers[3], &motor_handlers[4], &motor_handlers[5], };
 #endif
 
-CANHandler      cans[] = { CANHandler(PB_5, PB_6, &transceiver1), CANHandler(PB_8, PB_9, &transceiver2), };
+CANMessage      rx_msg1, rx_msg2;
+CAN             can1(PB_5, PB_6), can2(PB_8, PB_9);
+CANHandler      can_handlers[] = { CANHandler(&can1, &transceiver1, &rx_msg1), CANHandler(&can2, &transceiver2, &rx_msg2), };
 void            (*const onMsgReceived[])(void) = { onMsgReceived1, onMsgReceived2, };
 
 int main(void)
@@ -87,8 +90,8 @@ int main(void)
     pc.baud(921600);
     pc.attach(interact);
 
-    for (std::size_t i = 0; i < len(cans); i++) {
-        cans[i].init(onMsgReceived[i]);
+    for (std::size_t i = 0; i < len(can_handlers); i++) {
+        can_handlers[i].init(onMsgReceived[i]);
     }
 
     send_can.attach(serial_isr, Tick_dt);
@@ -154,18 +157,18 @@ void printManual()
 
 void onMsgReceived1()
 {
-    cans[0].pullMsg();
+    can_handlers[0].pullMsg();
 }
 
 void onMsgReceived2()
 {
-    cans[1].pullMsg();
+    can_handlers[1].pullMsg();
 }
 
 void transmitMsg()
 {
-    for (std::size_t i = 0; i < len(cans); i++) {
-        cans[i].pushMsg();
+    for (std::size_t i = 0; i < len(can_handlers); i++) {
+        can_handlers[i].pushMsg();
     }
 }
 

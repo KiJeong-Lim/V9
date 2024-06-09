@@ -1,3 +1,4 @@
+#include "mbed2/299/drivers/CAN.h"
 #ifndef CAPSTONE
 #define CAPSTONE "CAPSTONE-V9"
 
@@ -150,16 +151,16 @@ public:
 
 class CANHandler {
 public:
-    CAN can;
+    CAN *can;
     MotorHandler *const *const motor_handlers_vec_arr;
     const std::size_t motor_handlers_vec_size;
-    CANMessage rx_msg;
+    CANMessage *rx_msg;
 public:
     template<std::size_t LEN>
-    CANHandler(const PinName &rd, const PinName &td, MotorHandler *(*const motor_handlers_vec_arr_ptr)[LEN])
-        : can(rd, td), motor_handlers_vec_arr(*motor_handlers_vec_arr_ptr), motor_handlers_vec_size(LEN), rx_msg()
+    CANHandler(CAN *const can, MotorHandler *(*const motor_handlers_vec_arr_ptr)[LEN], CANMessage *const rx_msg)
+        : can(can), motor_handlers_vec_arr(*motor_handlers_vec_arr_ptr), motor_handlers_vec_size(LEN), rx_msg(rx_msg)
     {
-        rx_msg.len = 6;
+        rx_msg->len = 6;
     }
     void init(void (*to_be_attached)(void));
     void pullMsg(void);
